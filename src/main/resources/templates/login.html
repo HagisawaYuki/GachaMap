@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<title>ログイン画面</title>
+	<link rel="stylesheet" href="css/loginStyle.css"></link>
+
+</head>
+<body>	
+	<!-- ヘッダー設定 -->
+	<header>
+		<h1>
+        	<a class="header_title" href="/toppage">ガチャマップ</a>
+    	</h1>
+	</header>
+	<!-- ログイン -->
+	<div id="body_part">
+		
+		<h2>ログイン</h2>
+		<h3>登録済みの方</h3>
+		<th:block th:if="${isError} eq true">
+			<span id="error_message" th:text="${errorMsg}"></span>			
+		</th:block>
+		
+		<form id="login_form" th:action="@{/login}" method="post" th:object="${loginForm}">
+			<div id="form_items">
+				<p class="login_form_item"><label>ユーザ名</label></p>
+				<input class="text_field" type="text" th:field="*{name}">
+			
+				<p class="login_form_item"><label>パスワード</label></p>
+				<input class="text_field" type="password" th:field="*{password}"><br>
+				
+			</div>
+			<p><a class="forget_password" href="/createNewPassword"> ▶︎パスワードを忘れた方</a></p>
+			<p><input class="login_button" type="submit" value="ログイン"></p>
+		</form>
+		
+	</div>
+	
+</body>
+</html>

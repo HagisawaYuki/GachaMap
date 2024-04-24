@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org" lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>マップ画面</title>
+<!--<script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>-->
+<link href="/css/mapStyle.css" rel="stylesheet"></link>
+</head>
+<body>
+	<!--<div id="window">-->
+		<div id="marker_popup">
+			<p id="marker_name"></p>
+			<p id="marker_explanation"></p>
+			<label id="marker_popup_toukousha">投稿者：</label>
+			<label id="marker_user"></label>
+		</div>
+		<th:block th:if="${isError} eq true">
+			<div id="registration_error_block">
+				<h3 id="error_title">⚠️エラーメッセージ</h3>
+				<div>
+				
+					<span th:text="${errorMsg}"></span>
+					<a id="close_registration" onclick="closeRegistrationError()">✖︎</a>
+				</div>
+			</div>
+			
+		</th:block>
+		<div id="marker_registration">
+			<p id="registration_title">ガチャスポットを投稿する</p>
+			<a id="close_registration" onclick="closeRegistration()">✖︎</a>
+			<form th:action="@{/map}" method="post" th:object="${registerMarkerForm}">
+				<p class="registration_item"><label>スポットの名前</label></p>
+				<input id="text_name" type="text" th:field="*{name}" value=""><br>
+				<p class="form_advice">※20文字以下で設定してください。</p>
+				<!--<span th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></span>-->
+				<p class="registration_item"><label>位置(緯度経度)</label></p>
+				<label class="label_latlng">緯度 : </label>
+				<input id="text_lat" type="number" step="0.000001" th:field="*{latitude}"><br>
+				<p class="form_advice">※少数第6位までで正しい緯度を設定してください。</p>
+				<!--<span th:if="${#fields.hasErrors('latitude')}" th:errors="*{latitude}"></span>-->
+				<label class="label_latlng">経度 : </label>
+				<input id="text_lng" type="number" step="0.000001" th:field="*{longitude}"><br>
+				<p class="form_advice">※少数第6位までで正しい経度を設定してください。</p>
+				<!--<span th:if="${#fields.hasErrors('longitude')}" th:errors="*{longitude}"></span>-->
+				<p class="registration_item"><label>スポットの説明</label></p>
+				<textarea id="text_explanation" th:field="*{explanation}" value="" cols="50" rows="6"></textarea><br>
+				<p class="form_advice">※300文字以下で入力してください。</p>
+				<!--<span th:if="${#fields.hasErrors('explanation')}" th:errors="*{explanation}"></span>-->
+				<p><input id="registration_button" type="submit" value="登録する"></p>
+			</form>
+		</div>
+		<div id="subtitle">
+			<ul id="subtitle_ul">
+            	<li class="subtitle_li"><p id="explanation_subtitle">マップにガチャガチャの場所を追加しよう</p><br></li>
+            	<li class="subtitle_li"><p id="search">＼search／</p></li>
+        	</ul>
+		</div>
+		<div id="map"></div>
+	<!--</div>-->
+	<!-- prettier-ignore -->
+    <script>(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
+        ({key: "AIzaSyDtyaCuevTz8POvXGvNqjaTBC_dFPnJRuw", v: "weekly"});</script>
+    <script th:inline="javascript">
+		let map;
+        let DIGIT = 6;
+        async function initMap() {
+	        const { Map } = await google.maps.importLibrary("maps");
+	        map = new Map(document.getElementById("map"), {
+	            center: { lat: 35.591, lng: 139.3497 },
+	            zoom: 15,
+	        });
+	        //マーカーのデータベース情報
+			const markerInfos = /*[[${markerInfo}]]*/"markerInfo";
+			//ユーザのデータベース情報
+			const userInfos = /*[[${userInfo}]]*/"userInfo";
+			console.log(markerInfos);
+			console.log(userInfos);
+	        document.getElementById("text_name").value = null;
+	        document.getElementById("text_explanation").value = null;
+			//初期表示
+	        for(let i = 0; i < markerInfos.length; i++){
+				//マーカーの緯度経度
+				let lat = markerInfos[i]["latitude"];
+				let lng = markerInfos[i]["longitude"];
+				//マーカーを表示
+			    const marker = new google.maps.Marker({
+					position : {lat: lat, lng: lng},
+				    map : map
+			    });
+			    //マーカーがクリックされた時の処理
+				marker.addListener("click", () => {
+					closeRegistration();
+				    document.getElementById("marker_popup").style.visibility = "visible";
+				    document.getElementById("marker_name").textContent = markerInfos[i]["name"];
+				    document.getElementById("marker_explanation").textContent = markerInfos[i]["explanation"];
+				    document.getElementById("marker_user").textContent = searchUserById(userInfos, markerInfos[i]["user_id"])["name"];
+				});
+			}
+	        google.maps.event.addListener(map, 'click', event => clickListener(event, map));
+        }
+        initMap();
+        
+        //マップを押した時の処理(マーカー登録フォームを出す)
+        function clickListener(event, map) {
+			if(document.getElementById("marker_popup").style.visibility == "hidden"){
+			    const lat = event.latLng.lat().toFixed(DIGIT);
+			    const lng = event.latLng.lng().toFixed(DIGIT);
+				document.getElementById("text_lat").value = lat;
+				document.getElementById("text_lng").value = lng;
+				document.getElementById("marker_registration").style.visibility = "visible";
+			}else{
+				document.getElementById("marker_popup").style.visibility = "hidden";
+			}
+		}
+		function closeRegistration(){
+			document.getElementById("marker_registration").style.visibility = "hidden";
+		}
+		function closeRegistrationError(){
+			document.getElementById("registration_error_block").style.visibility = "hidden";
+		}
+		//ユーザをユーザIDナンバーから検索する
+		function searchUserById(users, id){
+			for(let i = 0; i < users.length; i++){
+				if(users[i]["id"] == id){
+					return users[i];
+				}
+			}
+		}
+   </script>
+    <!-- ヘッダー設定 -->
+	<header>
+		<h1>
+        	<a id="header_title" th:href="@{/map}">ガチャマップ</a>
+    	</h1>
+    	<nav class="pc-nav">
+        	<ul id="header_ul">
+            	<li id="header_li">
+					<form th:action="@{/logout}" method="post">
+						<span th:text="|ログインID : ${#authentication.principal.username}|"></span>
+						<input id="logout_button" type="submit" value="ログアウト">
+					</form>
+				</li>
+        	</ul>
+    	</nav>
+	</header>
+	
+</body>
+</html>

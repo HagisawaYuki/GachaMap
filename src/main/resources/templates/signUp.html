@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>新規会員登録</title>
+<link rel="stylesheet" href="/css/signUpStyle.css"></link>
+</head>
+<body>
+	<!-- ヘッダー設定 -->
+	<header>
+		<h1>
+        	<a class="header_title" href="/toppage">ガチャマップ</a>
+    	</h1>
+	</header>
+	<!-- 新規会員登録 -->
+	<div id="body_part">
+		<h2>新規会員登録</h2>
+		
+		<th:block th:if="${isError} eq true">
+			<span id="error_message" th:text="${message}"></span>			
+		</th:block>
+		
+		<form id="signUp_form_parent" th:action="@{/signUp}" method="post" th:object="${signUpForm}">
+			<div id="signUp_form_child">
+				<div><p class="signUp_form_item">ユーザ名</p></div>
+				<div><span th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></span></div>
+				<input class="text_field" type="text" th:field="*{name}">
+				<p class="form_advice">※4文字からから20文字で設定してください。</p>
+			
+				<div><p class="signUp_form_item">パスワード</p></div>
+				<div><span th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span></div>
+				<input class="text_field" type="password" th:field="*{password}">
+				<p class="form_advice">※8文字からから20文字で設定してください。</p>
+				
+				<div>
+					<p class="signUp_form_item">誕生日を入力してください</p>
+					<div id="birthday">
+						<input class="birthday_text_field" type="number" th:field="*{year}">
+						<label class="label_ymd">年</label>
+	
+						<input class="birthday_text_field" type="number" th:field="*{month}">
+						<label class="label_ymd">月</label>
+		
+						<input class="birthday_text_field" type="number" th:field="*{day}">
+						<label class="label_ymd">日</label>
+					</div>
+					<p class="form_advice">※正しい日付を半角数字で入力してください。</p>
+				</div>
+			</div>
+			<input id="signUp_button" type="submit" value="新規会員登録">
+		</form>
+		
+		<button id="go_to_toppage_button" onclick="location.href='/toppage'">トップページへ戻る</button>
+	</div>
+	
+	
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
